@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'create_account_screen.dart';
 
 class LoginV1Screen extends StatefulWidget {
   const LoginV1Screen({super.key});
@@ -49,6 +50,14 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
     _timer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _navigateToCreateAccount() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const CreateAccountScreen(),
+      ),
+    );
   }
 
   @override
@@ -157,7 +166,7 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: _navigateToCreateAccount,
                             child: Text(
                               'Create Account',
                               style: GoogleFonts.inter(
