@@ -123,18 +123,6 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
-                      // Subtitle
-                      Text(
-                        'Lorem ipsum dolor sit amet, consectetur\nadipiscing elit, sed do eiusmod tempor',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey.shade600,
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
                       const Spacer(),
                       // Buttons
                       _buildButton(
@@ -156,7 +144,32 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                       ),
                       const SizedBox(height: 16),
                       _buildGoogleButton(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      // Create Account
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account?",
+                            style: GoogleFonts.inter(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Create Account',
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF3342B3),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
