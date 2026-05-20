@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534393609979",
+    "project_id": "belldi",
+    "storage_bucket": "belldi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534393609979:android:1fd70c5618458027041a5e",
+        "android_client_info": {
+          "package_name": "com.belldi.fashionstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCGI2L33-Dr-AvfF51hQS9n0RXWIAjUXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
