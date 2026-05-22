@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import '../core/utils/logger.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -147,6 +148,54 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       AppLogger.error('Unexpected error during Google Sign-In', tag: 'Auth', error: e);
+      _setLoading(false);
+      _setError(e.toString());
+      return false;
+    }
+  }
+
+  // ── Facebook Sign-In ────────────────────────────────────────────────────
+  Future<bool> signInWithFacebook() async {
+    AppLogger.auth('🔑 Starting Facebook Sign-In');
+    _setLoading(true);
+    _setError(null);
+    try {
+      AppLogger.auth('📱 Prompting user for Facebook login...');
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      if (result.status == LoginStatus.success) {
+        AppLogger.auth('✅ Facebook login successful, obtaining tokens...');
+        final AccessToken accessToken = result.accessToken!;
+        
+        final OAuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
+        
+        AppLogger.auth('🔄 Signing in to Firebase with Facebook credentials...');
+        final userCredential = await _auth.signInWithCredential(credential);
+        AppLogger.auth('✅ Firebase sign-in successful for: ${userCredential.user?.email}');
+        
+        _setLoading(false);
+        return true;
+      } else if (result.status == LoginStatus.cancelled) {
+        AppLogger.auth('⚠️  Facebook Sign-In cancelled by user');
+        _setLoading(false);
+        return false;
+      } else {
+        AppLogger.error('Facebook login failed: ${result.message}', tag: 'Auth');
+        _setLoading(false);
+        _setError(result.message);
+        return false;
+      }
+    } on FirebaseAuthException catch (e) {
+      AppLogger.error(
+        'Firebase Facebook Sign-In failed: ${e.code}',
+        tag: 'Auth',
+        error: e,
+      );
+      _setLoading(false);
+      _setError(_friendlyError(e));
+      return false;
+    } catch (e) {
+      AppLogger.error('Unexpected error during Facebook Sign-In', tag: 'Auth', error: e);
       _setLoading(false);
       _setError(e.toString());
       return false;

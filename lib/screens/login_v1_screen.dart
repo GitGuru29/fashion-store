@@ -109,8 +109,9 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                 flex: 11,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    children: [
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
                       const SizedBox(height: 24),
                       // Dots
                       Row(
@@ -136,7 +137,7 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 32),
                       // Buttons
                       _buildButton(
                         text: 'Login With Email',
@@ -147,14 +148,7 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                         hasShadow: true,
                       ),
                       const SizedBox(height: 16),
-                      _buildButton(
-                        text: 'Login With Facebook',
-                        icon: Icons.facebook,
-                        iconColor: const Color(0xFF3342B3),
-                        textColor: Colors.black87,
-                        backgroundColor: Colors.white,
-                        borderColor: const Color(0xFF3342B3),
-                      ),
+                      _buildFacebookButton(),
                       const SizedBox(height: 16),
                       _buildGoogleButton(),
                       const SizedBox(height: 16),
@@ -187,8 +181,9 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
         ),
       ),
     );
@@ -322,6 +317,74 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                               )
                             : Text(
                                 'Login With Google',
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFacebookButton() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF3342B3), width: 1),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: authProvider.isLoading
+                  ? null
+                  : () async {
+                      final success = await authProvider.signInWithFacebook();
+                      if (!context.mounted) return;
+                      if (success) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const MainShell()),
+                          (route) => false,
+                        );
+                      } else if (authProvider.errorMessage != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(authProvider.errorMessage!)),
+                        );
+                      }
+                    },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    const Icon(Icons.facebook, color: Color(0xFF3342B3), size: 24),
+                    Expanded(
+                      child: Center(
+                        child: authProvider.isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF3342B3),
+                                ),
+                              )
+                            : Text(
+                                'Login With Facebook',
                                 style: GoogleFonts.inter(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
