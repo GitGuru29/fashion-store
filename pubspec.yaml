@@ -24,6 +24,10 @@ dependencies:
   # Navigation
   go_router: ^14.2.7
 
+  # Maps & Location
+  google_maps_flutter: ^2.5.3
+  geolocator: ^11.0.0
+
   # Icons
   cupertino_icons: ^1.0.8
   firebase_core: ^4.9.0

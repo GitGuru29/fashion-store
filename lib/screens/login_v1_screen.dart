@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'create_account_screen.dart';
+import 'login_email_screen.dart';
+import 'main_shell.dart';
 
 class LoginV1Screen extends StatefulWidget {
   const LoginV1Screen({super.key});
@@ -234,7 +236,13 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {},
+          onTap: () {
+            if (text == 'Login With Email') {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LoginEmailScreen()),
+              );
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -282,11 +290,10 @@ class _LoginV1ScreenState extends State<LoginV1Screen> {
                       final success = await authProvider.signInWithGoogle();
                       if (!context.mounted) return;
                       if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Successfully logged in with Google!')),
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const MainShell()),
+                          (route) => false,
                         );
-                        // Navigate to home screen
-                        // Navigator.of(context).pushReplacement(...);
                       } else if (authProvider.errorMessage != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(authProvider.errorMessage!)),

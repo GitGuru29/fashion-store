@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'login_email_screen.dart';
+import 'main_shell.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -13,6 +15,17 @@ class CreateAccountScreen extends StatefulWidget {
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _obscurePassword1 = true;
   bool _obscurePassword2 = true;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +83,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   
                   // Form Fields
                   _buildTextField(
-                    label: 'Username',
-                    hint: 'kevinhard',
+                    label: 'Email',
+                    hint: 'example@email.com',
+                    controller: _emailController,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -79,6 +93,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     hint: '••••••••',
                     isPassword: true,
                     obscureText: _obscurePassword1,
+                    controller: _passwordController,
                     onToggleVisibility: () {
                       setState(() {
                         _obscurePassword1 = !_obscurePassword1;
@@ -87,10 +102,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Password',
+                    label: 'Confirm Password',
                     hint: 'Type password here',
                     isPassword: true,
                     obscureText: _obscurePassword2,
+                    controller: _confirmPasswordController,
                     onToggleVisibility: () {
                       setState(() {
                         _obscurePassword2 = !_obscurePassword2;
@@ -100,37 +116,88 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   const SizedBox(height: 24),
                   
                   // Register Button
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3342B3),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF3342B3).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3342B3),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3342B3).withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {},
-                        child: Center(
-                          child: Text(
-                            'Register',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: authProvider.isLoading ? null : () async {
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text;
+                              final confirmPassword = _confirmPasswordController.text;
+
+                              if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all fields')),
+                                );
+                                return;
+                              }
+
+                              if (password != confirmPassword) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Passwords do not match')),
+                                );
+                                return;
+                              }
+
+                              final success = await authProvider.signUpWithEmailAndPassword(
+                                email: email,
+                                password: password,
+                              );
+
+                              if (!context.mounted) return;
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Account created successfully!')),
+                                );
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const MainShell()),
+                                  (route) => false,
+                                );
+                              } else if (authProvider.errorMessage != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(authProvider.errorMessage!)),
+                                );
+                              }
+                            },
+                            child: Center(
+                              child: authProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Register',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   
@@ -180,6 +247,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     text: 'Continue With Email',
                     textColor: const Color(0xFF3342B3),
                     backgroundColor: const Color(0xFFF0F2FB),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginEmailScreen()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
                   
@@ -211,6 +283,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     required String hint,
     bool isPassword = false,
     bool obscureText = false,
+    TextEditingController? controller,
     VoidCallback? onToggleVisibility,
   }) {
     return Column(
@@ -226,6 +299,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         ),
         const SizedBox(height: 6),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           style: GoogleFonts.inter(
             fontSize: 15,
@@ -273,6 +347,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     required Color textColor,
     required Color backgroundColor,
     Color? borderColor,
+    VoidCallback? onTap,
   }) {
     return Container(
       width: double.infinity,
@@ -286,7 +361,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {},
+          onTap: onTap ?? () {},
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -341,8 +416,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Successfully logged in with Google!')),
                         );
-                        // Navigate to home screen
-                        // Navigator.of(context).pushReplacement(...);
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const MainShell()),
+                          (route) => false,
+                        );
                       } else if (authProvider.errorMessage != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(authProvider.errorMessage!)),

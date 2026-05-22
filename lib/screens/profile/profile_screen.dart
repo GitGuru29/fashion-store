@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../providers/auth_provider.dart';
+import '../login_v1_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user;
+    
+    final displayName = user?.displayName ?? 'Guest User';
+    final email = user?.email ?? 'Not signed in';
+    final photoUrl = user?.photoURL;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -38,8 +48,16 @@ class ProfileScreen extends StatelessWidget {
                         gradient: AppColors.accentGradient,
                         shape: BoxShape.circle,
                         boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.4), blurRadius: 20, spreadRadius: 4)],
+                        image: photoUrl != null 
+                          ? DecorationImage(
+                              image: NetworkImage(photoUrl),
+                              fit: BoxFit.cover,
+                            ) 
+                          : null,
                       ),
-                      child: const Icon(Icons.person_rounded, color: Colors.white, size: 52),
+                      child: photoUrl == null 
+                        ? const Icon(Icons.person_rounded, color: Colors.white, size: 52) 
+                        : null,
                     ),
                     Positioned(
                       right: 0, bottom: 0,
@@ -53,9 +71,9 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Text('Fashion Lover', style: AppTextStyles.headlineLarge),
+                Text(displayName, style: AppTextStyles.headlineLarge),
                 const SizedBox(height: 4),
-                Text('fashion@belldi.com', style: AppTextStyles.bodyMedium),
+                Text(email, style: AppTextStyles.bodyMedium),
                 const SizedBox(height: 16),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   _StatChip(label: 'Orders', value: '12'),
@@ -113,7 +131,16 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(Icons.logout_rounded, color: AppColors.error),
                 title: Text('Sign Out', style: GoogleFonts.inter(
                   fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error)),
-                onTap: () {},
+                onTap: () async {
+                  await auth.signOut();
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginV1Screen()),
+                      (route) => false,
+                    );
+                  }
+                },
               ),
             ),
             const SizedBox(height: 16),

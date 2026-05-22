@@ -6,7 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/wishlist_provider.dart';
-
+import '../checkout/checkout_screen.dart';
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
   const ProductDetailScreen({super.key, required this.product});
@@ -275,7 +275,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           onPressed: () {
                             if (_selectedSize != null && _selectedColor != null) {
                               cart.addToCart(product, _selectedSize!, _selectedColor!);
-                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
                             }
                           },
                         ),

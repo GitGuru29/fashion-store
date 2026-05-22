@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/cart_provider.dart';
+import '../checkout/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -179,7 +180,9 @@ class _CartScreenState extends State<CartScreen> {
                   ]),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => _showCheckoutSuccess(context, cart),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
+                    },
                     child: const Text('Proceed to Checkout'),
                   ),
                 ]),

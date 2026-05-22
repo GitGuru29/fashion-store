@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:math' as math;
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../data/mock_data.dart';
 import '../../models/product.dart';
 import '../product_detail/product_detail_screen.dart';
 import '../products/products_screen.dart';
+import '../wishlist/wishlist_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +17,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentBannerIndex = 0;
+  late final List<int> _bannerDiscounts;
+  
+  final List<String> _bannerImages = [
+    'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=800&q=80', // Fashion winter
+    'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80', // Girls in field
+    'https://images.unsplash.com/photo-1540221652346-e5dd6b50f3e7?auto=format&fit=crop&w=800&q=80', // Clothes rack
+    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80', // Store interior
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerDiscounts = List.generate(
+      _bannerImages.length,
+      (index) => (math.Random().nextInt(6) + 2) * 10, // 20% to 70%
+    );
+  }
+
   void _openDetail(BuildContext context, Product product) {
     Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)));
@@ -52,15 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(width: 16, height: 4, decoration: BoxDecoration(color: const Color(0xFF3342B3), borderRadius: BorderRadius.circular(2))),
-                    const SizedBox(width: 4),
-                    Container(width: 16, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-                    const SizedBox(width: 4),
-                    Container(width: 16, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-                    const SizedBox(width: 4),
-                    Container(width: 16, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-                  ],
+                  children: List.generate(
+                    _bannerImages.length,
+                    (index) => Container(
+                      width: 16,
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: _currentBannerIndex == index
+                            ? const Color(0xFF3342B3)
+                            : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 
@@ -99,27 +127,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        final displayName = auth.user?.displayName ?? 'Guest';
+        final firstName = displayName.split(' ').first;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Hello', style: GoogleFonts.inter(fontSize: 15, color: Colors.grey.shade600)),
-            Text('Thisaranga', style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.black)),
-          ],
-        ),
-        Row(
-          children: [
-            Container(
-              width: 44, height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Icon(Icons.favorite_rounded, color: Colors.grey.shade400, size: 22),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Hello', style: GoogleFonts.inter(fontSize: 15, color: Colors.grey.shade600)),
+                Text(firstName, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.black)),
+              ],
             ),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const WishlistScreen()));
+                  },
+                  child: Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Icon(Icons.favorite_rounded, color: Colors.grey.shade400, size: 22),
+                  ),
+                ),
             const SizedBox(width: 12),
             Stack(
               clipBehavior: Clip.none,
@@ -150,6 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
+  },
+);
   }
 
   Widget _buildSearch() {
@@ -173,57 +213,89 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBanner() {
-    return Container(
+    return SizedBox(
       height: 160,
       width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: const Color(0xFFD3C5B5),
-      ),
-      child: Stack(
-        children: [
-          // Silhouette / Model image
-          Positioned(
-            left: 0, bottom: 0,
+      child: PageView.builder(
+        itemCount: _bannerImages.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentBannerIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          final imageUrl = _bannerImages[index];
+          final discount = _bannerDiscounts[index];
+          
+          // Use titles from mock data if available, or a default
+          final bannerTitle = index < MockData.banners.length 
+              ? MockData.banners[index]['title'] ?? 'Sale Now' 
+              : 'Sale Now';
+          
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFD3C5B5),
+            ),
             child: ClipRRect(
-              borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20)),
-              child: Image.network(
-                'https://images.unsplash.com/photo-1593030761757-71fae46af504?auto=format&fit=crop&q=80&w=300', // Man in suit
-                width: 160,
-                height: 160,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                children: [
+                  // Full width image
+                  Positioned.fill(
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      errorBuilder: (_, __, ___) => const SizedBox(),
+                    ),
+                  ),
+                  // Gradient for text readability
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.black.withOpacity(0.85), Colors.transparent],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Content
+                  Positioned(
+                    left: 24, top: 0, bottom: 0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                         Row(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Text('$discount%', style: GoogleFonts.inter(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1)),
+                             Padding(
+                               padding: const EdgeInsets.only(top: 4.0, left: 4),
+                               child: Text('OFF', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                             ),
+                           ]
+                         ),
+                         const SizedBox(height: 4),
+                         Text(bannerTitle, style: GoogleFonts.inter(fontSize: 14, color: Colors.white.withOpacity(0.95))),
+                         const SizedBox(height: 16),
+                         Container(
+                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                           decoration: BoxDecoration(color: const Color(0xFFECA361), borderRadius: BorderRadius.circular(6)),
+                           child: Text('SHOP NOW', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                         ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          // Content
-          Positioned(
-            right: 24, top: 32,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Row(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     Text('50%', style: GoogleFonts.inter(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white)),
-                     Padding(
-                       padding: const EdgeInsets.only(top: 6.0, left: 4),
-                       child: Text('OFF', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-                     ),
-                   ]
-                 ),
-                 const SizedBox(height: 4),
-                 Text('Get Summer Sale Now', style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.9))),
-                 const SizedBox(height: 16),
-                 Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                   decoration: BoxDecoration(color: const Color(0xFFECA361), borderRadius: BorderRadius.circular(6)),
-                   child: Text('SHOP NOW', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                 ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -365,12 +437,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'RS.${product.price.toStringAsFixed(2)}', 
+                        '\$${product.price.toStringAsFixed(2)}', 
                         style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.black),
                       ),
                       Row(
                         children: [
-                          Text('45 ', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF3342B3))),
+                          Text('${product.stock} ', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF3342B3))),
                           Text('left', style: GoogleFonts.inter(fontSize: 13, color: Colors.grey)),
                         ],
                       ),
@@ -389,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(width: 4),
-                      Text('(245 Reviews)', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey)),
+                      Text('(${product.reviewCount} Reviews)', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ],
@@ -401,3 +473,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

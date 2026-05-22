@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/logger.dart';
 import 'providers/cart_provider.dart';
 import 'providers/wishlist_provider.dart';
 import 'providers/auth_provider.dart';
@@ -13,11 +14,23 @@ import 'screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  await GoogleSignIn.instance.initialize();
+  try {
+    AppLogger.firebase('🚀 Initializing Firebase...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    AppLogger.firebase('✅ Firebase initialized successfully');
+  } catch (e) {
+    AppLogger.error('Firebase initialization failed', tag: 'Firebase', error: e);
+  }
+
+  try {
+    AppLogger.info('🔑 Initializing Google Sign-In...', tag: 'GoogleSignIn');
+    await GoogleSignIn.instance.initialize();
+    AppLogger.info('✅ Google Sign-In initialized', tag: 'GoogleSignIn');
+  } catch (e) {
+    AppLogger.error('Google Sign-In initialization failed', tag: 'GoogleSignIn', error: e);
+  }
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -29,6 +42,8 @@ void main() async {
     systemNavigationBarColor: Color(0xFF090E35),
     systemNavigationBarIconBrightness: Brightness.light,
   ));
+
+  AppLogger.info('🎨 Launching app...');
   runApp(const BelldiApp());
 }
 

@@ -12,7 +12,20 @@
           "package_name": "com.belldi.fashionstore"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "534393609979-tjbl6lhksmq23b2tr20hmbs42r49vlq2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.belldi.fashionstore",
+            "certificate_hash": "92b57aafc5fe24d77dda14ffeee9b899abf4263a"
+          }
+        },
+        {
+          "client_id": "534393609979-6denpsc2g0bq15q9ac43253isg46g8hh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCCGI2L33-Dr-AvfF51hQS9n0RXWIAjUXg"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "534393609979-6denpsc2g0bq15q9ac43253isg46g8hh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
